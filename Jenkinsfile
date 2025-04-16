@@ -104,14 +104,16 @@ pipeline {
 
                         sleep 30
                     """
-                
+                    withCredentials([sshUserPrivateKey(credentialsId: 'jenkins_ssh_key', keyFileVariable: 'SSH_KEY')]) {
+                    sh 'ssh -o StrictHostKeyChecking=no -i $SSH_KEY ubuntu@ec2-35-154-187-90.ap-south-1.compute.amazonaws.com> "hostname"'
+
                     withEnv(["ANSIBLE_HOST_KEY_CHECKING=false"]){
                         ansiblePlaybook(
                             playbook: "${ANSIBLE_PLAYBOOK}", 
                             inventory: 'ansible/inventory.ini', 
                             extras: "--private-key=$SSH_KEY"
                         )
-                    
+                    }
                 }
             }
         }
