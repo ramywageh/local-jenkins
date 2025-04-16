@@ -109,4 +109,24 @@ pipeline {
             }
         }
     }
+    post {
+        success {
+            withCredentials([usernamePassword(credentialsId:"docker",usernameVariable:"USER",passwordVariable:"PASS")]){
+                slackSend(
+                    channel: "depi-project-devops",
+                    color: "good",
+                    teamDomain: 'devopsproject-a4j4306', tokenCredentialId: 'slack',
+                    message: "${env.JOB_NAME} is succeeded. Build no. ${env.BUILD_NUMBER} " + 
+                     "(<https://hub.docker.com/repository/docker/${USER}/todo-app/general|Open the image link>)"
+                )
+            }
+        }
+        failure {
+            slackSend(
+                channel: "depi-project-devops",
+                color: "danger",
+                message: "${env.JOB_NAME} is failed. Build no. ${env.BUILD_NUMBER} URL: ${env.BUILD_URL}",
+                teamDomain: 'devopsproject-a4j4306', tokenCredentialId: 'slack'
+            )
+        }
 }
