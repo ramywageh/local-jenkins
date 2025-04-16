@@ -94,10 +94,63 @@ pipeline {
                 }
             }
         }
+        stage('Run Ansible Playbook To Configure The Deployment and monitoring Environment') {
+            steps {
+                // Pass the SSH key and publicIP to Ansible 
+                    sh """
+                        echo "[todoApp]" > ansible/inventory.ini
+                        cat Terraform/ec2_public_ip.txt >> ansible/inventory.ini
+                        echo " ansible_user=ubuntu" >> ansible/inventory.ini
+
+                        echo "\n[prometheus]" >> ansible/inventory.ini
+                        cat terraform/prometheus_public_ip.txt >> ansible/inventory.ini
+                        echo " ansible_user=ubuntu" >> ansible/inventory.ini
+                        sleep 30
+                    """
+                withCredentials([sshUserPrivateKey(credentialsId: 'jenkins_ssh_key', keyFileVariable: 'SSH_KEY')]) {
+                    withEnv(["ANSIBLE_HOST_KEY_CHECKING=false"]){
+                        ansiblePlaybook(
+                            playbook: "${ANSIBLE_PLAYBOOK}", 
+                            inventory: 'ansible/inventory.ini', 
+                            extras: "--private-key=$SSH_KEY"
+                        )
+                    }
+                }
+            }
+        }
         stage('Build') {
             steps {
-                    
-                // Build Docker image
+                 stage('Install Docker') {
+            steps {
+                sh '''
+                    # Update packages
+                    sudo apt-get update
+
+                    # Install required packages
+                    sudo apt-get install -y \
+                      ca-certificates \
+                      curl \
+                      gnupg \
+                      lsb-release
+
+                    # Add Docker’s official GPG key
+                    sudo mkdir -p /etc/apt/keyrings
+                    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+                    # Set up the Docker repository
+                    echo \
+                      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+                      $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+                    # Install Docker
+                    sudo apt-get update
+                    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+                    # Verify Docker
+                    docker --version
+                '''
+            
+        
                 sh "docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} ."
                 sh "docker tag ${DOCKER_IMAGE}:${BUILD_NUMBER} ${DOCKER_IMAGE}:latest"
                     
