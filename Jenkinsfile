@@ -93,17 +93,7 @@ pipeline {
             }
         }
         stage("Build") {
-            steps {
-                sh '''
-                    whoami
-                    id
-                    which sudo
-                    sudo apt update
-                    sudo apt install -y sudo docker.io
-                    sudo usermod -aG docker $USER
-                    sudo docker build -t my-app .
-                '''
-                
+            steps {  
                 withCredentials([usernamePassword(credentialsId:"docker",usernameVariable:"USER",passwordVariable:"PASS")]){
                 sh 'docker build . -t ${USER}/todo-app:v1.${BUILD_NUMBER}'
                 sh 'docker login -u ${USER} -p ${PASS}'
