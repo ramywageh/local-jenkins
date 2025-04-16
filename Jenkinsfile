@@ -12,7 +12,7 @@ pipeline {
         AWS_DEFAULT_REGION    = 'ap-south-1'
         TERRAFORM_VERSION = "1.9.2"
         TERRAFORM_BIN_DIR = "${WORKSPACE}/terraform-bin"
-        TERRAFORM_DIR = "Terraform/"
+        TERRAFORM_DIR = "terraform/"
         DOCKER_IMAGE = 'flask-todo-app'
         
     }
