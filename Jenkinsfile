@@ -102,9 +102,6 @@ pipeline {
                         cat Terraform/ec2_public_ip.txt >> ansible/inventory.ini
                         echo " ansible_user=ubuntu" >> ansible/inventory.ini
 
-                        echo "\n[prometheus]" >> ansible/inventory.ini
-                        cat terraform/prometheus_public_ip.txt >> ansible/inventory.ini
-                        echo " ansible_user=ubuntu" >> ansible/inventory.ini
                         sleep 30
                     """
                 withCredentials([sshUserPrivateKey(credentialsId: 'jenkins_ssh_key', keyFileVariable: 'SSH_KEY')]) {
