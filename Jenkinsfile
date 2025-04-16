@@ -120,8 +120,6 @@ pipeline {
         }
         stage('Build') {
             steps {
-                 stage('Install Docker') {
-            steps {
                 sh '''
                     # Update packages
                     sudo apt-get update
@@ -149,7 +147,6 @@ pipeline {
                     # Verify Docker
                     docker --version
                 '''
-            
         
                 sh "docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} ."
                 sh "docker tag ${DOCKER_IMAGE}:${BUILD_NUMBER} ${DOCKER_IMAGE}:latest"
