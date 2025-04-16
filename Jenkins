@@ -19,7 +19,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/ramywageh/test-project.git'
+                git branch: 'main', url: 'https://github.com/ramywageh/local-jenkins.git'
             }
         }
         stage('Install Terraform') {
