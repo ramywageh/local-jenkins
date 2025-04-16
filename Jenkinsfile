@@ -13,6 +13,7 @@ pipeline {
         TERRAFORM_VERSION = "1.9.2"
         TERRAFORM_BIN_DIR = "${WORKSPACE}/terraform-bin"
         TERRAFORM_DIR = "Terraform/"
+        DOCKER_IMAGE = 'flask-todo-app'
         
     }
     
