@@ -117,7 +117,7 @@ pipeline {
                     color: "good",
                     teamDomain: 'devopsproject-a4j4306', tokenCredentialId: 'slack',
                     message: "${env.JOB_NAME} is succeeded. Build no. ${env.BUILD_NUMBER} " + 
-                     "(<https://hub.docker.com/repository/docker/${USER}/todo-app/general|Open the image link>)"
+                    "(<https://hub.docker.com/repository/docker/${USER}/todo-app/general|Open the image link>)"
                 )
             }
         }
@@ -129,4 +129,5 @@ pipeline {
                 teamDomain: 'devopsproject-a4j4306', tokenCredentialId: 'slack'
             )
         }
+    }    
 }
