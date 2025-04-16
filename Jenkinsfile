@@ -95,10 +95,10 @@ pipeline {
         stage("Build") {
             steps {
                 sh '''
-                   apt update
-                    apt install -y sudo docker.io
-                    usermod -aG docker $USER
-                    docker build -t my-app .
+                    sudo apt update
+                    sudo apt install -y sudo docker.io
+                    sudo usermod -aG docker $USER
+                    sudo docker build -t my-app .
                 '''
                 
                 withCredentials([usernamePassword(credentialsId:"docker",usernameVariable:"USER",passwordVariable:"PASS")]){
