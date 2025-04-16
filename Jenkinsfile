@@ -13,6 +13,7 @@ pipeline {
         TERRAFORM_VERSION = "1.9.2"
         TERRAFORM_BIN_DIR = "${WORKSPACE}/terraform-bin"
         TERRAFORM_DIR = "Terraform/"
+        DOCKER_IMAGE = 'flask-todo-app'
     }
     
 
@@ -94,22 +95,17 @@ pipeline {
         }
         stage('Build') {
             steps {
-                // Create necessary directories and files if they don't exist
-                sh 'mkdir -p templates'
-                sh 'echo "Flask==2.0.1\nprometheus_flask_exporter==0.18.7\ngunicorn==20.1.0" > requirements.txt'
-                sh 'echo "<!DOCTYPE html><html><head><title>Todo App</title></head><body><h1>Todo List</h1><form action=\'/add\' method=\'post\'><input type=\'text\' name=\'task\'><input type=\'submit\' value=\'Add Task\'></form><ul>{% for task in tasks %}<li>{{ task }} <a href=\'/delete/{{ loop.index0 }}\'>Delete</a></li>{% endfor %}</ul></body></html>" > templates/index.html'
-                
+                sh "docker --version"
+                    
                 // Build Docker image
-                sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
-                sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest"
-                
-                // Optional: Push to Docker registry if needed
-                // Make sure to set up Docker registry credentials in Jenkins
-                // withCredentials([string(credentialsId: 'docker-registry-credentials', variable: 'DOCKER_PASSWORD')]) {
-                //     sh "echo ${DOCKER_PASSWORD} | docker login -u username --password-stdin"
-                //     sh "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
-                //     sh "docker push ${DOCKER_IMAGE}:latest"
-                // }
+                sh "docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} ."
+                sh "docker tag ${DOCKER_IMAGE}:${BUILD_NUMBER} ${DOCKER_IMAGE}:latest"
+                    
+                // Save Docker image for potential later deployment
+                sh "docker save -o ${DOCKER_IMAGE}.tar ${DOCKER_IMAGE}:${BUILD_NUMBER}"
+                    
+                // Echo image information
+                echo "Built Docker image: ${DOCKER_IMAGE}:${BUILD_NUMBER}"
             }
         }
     }
