@@ -49,11 +49,13 @@ pipeline {
         }
         stage('Terraform Init') {
             steps {
-                dir("${env.TERRAFORM_DIR}") {
+                withEnv(["PATH=${env.TERRAFORM_BIN_DIR}:/usr/bin:/bin"]) {
+                    dir("${TERRAFORM_DIR}") {
                         sh '''
                           terraform version
                           terraform init
-                        '''   
+                        '''
+                    }    
                 }
             }
         }
