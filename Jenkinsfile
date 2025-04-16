@@ -104,14 +104,14 @@ pipeline {
 
                         sleep 30
                     """
-                withCredentials([sshUserPrivateKey(credentialsId: 'jenkins_ssh_key', keyFileVariable: 'SSH_KEY')]) {
+                
                     withEnv(["ANSIBLE_HOST_KEY_CHECKING=false"]){
                         ansiblePlaybook(
                             playbook: "${ANSIBLE_PLAYBOOK}", 
                             inventory: 'ansible/inventory.ini', 
                             extras: "--private-key=$SSH_KEY"
                         )
-                    }
+                    
                 }
             }
         }
