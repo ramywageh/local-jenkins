@@ -92,13 +92,24 @@ pipeline {
                 }
             }
         }
-        stage("Build") {
-            steps {  
-                withCredentials([usernamePassword(credentialsId:"docker",usernameVariable:"USER",passwordVariable:"PASS")]){
-                sh 'docker build . -t ${USER}/todo-app:v1.${BUILD_NUMBER}'
-                sh 'docker login -u ${USER} -p ${PASS}'
-                sh 'docker push ${USER}/todo-app:v1.${BUILD_NUMBER}'
-                }
+        stage('Build') {
+            steps {
+                // Create necessary directories and files if they don't exist
+                sh 'mkdir -p templates'
+                sh 'echo "Flask==2.0.1\nprometheus_flask_exporter==0.18.7\ngunicorn==20.1.0" > requirements.txt'
+                sh 'echo "<!DOCTYPE html><html><head><title>Todo App</title></head><body><h1>Todo List</h1><form action=\'/add\' method=\'post\'><input type=\'text\' name=\'task\'><input type=\'submit\' value=\'Add Task\'></form><ul>{% for task in tasks %}<li>{{ task }} <a href=\'/delete/{{ loop.index0 }}\'>Delete</a></li>{% endfor %}</ul></body></html>" > templates/index.html'
+                
+                // Build Docker image
+                sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
+                sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest"
+                
+                // Optional: Push to Docker registry if needed
+                // Make sure to set up Docker registry credentials in Jenkins
+                // withCredentials([string(credentialsId: 'docker-registry-credentials', variable: 'DOCKER_PASSWORD')]) {
+                //     sh "echo ${DOCKER_PASSWORD} | docker login -u username --password-stdin"
+                //     sh "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                //     sh "docker push ${DOCKER_IMAGE}:latest"
+                // }
             }
         }
     }
