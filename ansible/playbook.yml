@@ -1,0 +1,12 @@
+---
+- name: manage app machine
+  hosts: todoApp
+  become: yes
+  roles:
+    - app-deployment
+
+- name: Manage monitoring machine
+  hosts: prometheus
+  become: yes
+  roles:
+    - monitoring

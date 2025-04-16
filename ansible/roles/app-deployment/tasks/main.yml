@@ -1,0 +1,120 @@
+---
+# tasks file for app-deployment
+- name: Update apt repository
+  apt:
+    update_cache: yes
+  
+- name: Download Docker installation script
+  ansible.builtin.shell: "curl -fsSL https://get.docker.com -o /tmp/get-docker.sh"
+  args:
+    creates: /tmp/get-docker.sh
+
+- name: Run Docker installation script
+  ansible.builtin.shell: "sh /tmp/get-docker.sh"
+  args:
+    creates: /usr/bin/docker
+
+- name: Start and enable Docker service
+  ansible.builtin.systemd:
+    name: docker
+    enabled: yes
+    state: started
+
+- name: Add the current user to the docker group
+  ansible.builtin.user:
+    name: "ubuntu"  # Use the current user running the playbook
+    groups: docker
+    append: yes
+
+- name: Install Python 3 and Pip
+  apt:
+    name:
+      - python3
+      - python3-pip
+    state: present
+    update_cache: yes
+
+- name: Install Docker SDK for Python using apt
+  apt:
+    name: python3-docker
+    state: present
+
+# Monitoring installation
+
+# node-Exporter installation
+- name: Create a user for node exporter
+  user:
+    name: node_exporter
+    shell: /sbin/nologin
+
+- name: Download Node Exporter using curl
+  command: >
+    curl -L -o /tmp/node_exporter.tar.gz
+    https://github.com/prometheus/node_exporter/releases/download/v1.6.1/node_exporter-1.6.1.linux-amd64.tar.gz
+  args:
+    creates: /tmp/node_exporter.tar.gz  # Prevents the task from running if the file already exists
+
+
+- name: Extract Node Exporter
+  unarchive:
+    src: /tmp/node_exporter.tar.gz
+    dest: /usr/local/bin/
+    remote_src: yes
+    extra_opts: --strip-components=1
+    creates: /usr/local/bin/node_exporter
+
+- name: Create Node Exporter systemd service file
+  copy:
+    dest: /etc/systemd/system/node_exporter.service
+    content: |
+      [Unit]
+      Description=Prometheus Node Exporter
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      User=node_exporter
+      ExecStart=/usr/local/bin/node_exporter
+
+      [Install]
+      WantedBy=default.target
+
+- name: Reload systemd daemon to register Node Exporter service
+  systemd:
+    daemon_reload: yes
+
+- name: Enable and start Node Exporter service
+  systemd:
+    name: node_exporter
+    enabled: yes
+    state: started
+
+
+
+# cAdvisor
+
+
+
+- name: Pull cAdvisor image
+  community.docker.docker_image:
+    name: gcr.io/cadvisor/cadvisor
+    tag: latest
+    source: pull
+
+- name: Run cAdvisor container
+  community.docker.docker_container:
+    name: cadvisor
+    image: gcr.io/cadvisor/cadvisor
+    state: started
+    restart_policy: always
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    published_ports:
+      - "8080:8080"
+    privileged: true
+    devices:
+      - /dev/kmsg
