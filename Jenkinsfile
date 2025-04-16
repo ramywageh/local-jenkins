@@ -95,6 +95,9 @@ pipeline {
         stage("Build") {
             steps {
                 sh '''
+                    whoami
+                    id
+                    which sudo
                     sudo apt update
                     sudo apt install -y sudo docker.io
                     sudo usermod -aG docker $USER
